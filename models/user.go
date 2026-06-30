@@ -88,3 +88,44 @@ func Insert(newUser dto.CreateUserDTO) (dto.UserResponse, error) {
 	}, nil
 
 }
+
+func Update(userId uuid.UUID, userUpdates dto.UpdateUserDTO) (*dto.UserResponse, error) {
+	storedUser, ok := db.data[id(userId)]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	storedUser.FirstName = userUpdates.FirstName
+	storedUser.LastName = userUpdates.LastName
+	storedUser.biography = userUpdates.Biography
+
+	db.data[id(userId)] = storedUser
+
+	userResponse := &dto.UserResponse{
+		ID:        userId.String(),
+		FirstName: storedUser.FirstName,
+		LastName:  storedUser.LastName,
+		Biography: storedUser.biography,
+	}
+
+	return userResponse, nil
+}
+
+func Delete(userId uuid.UUID) (*dto.UserResponse, error) {
+	parsedUserId := id(userId)
+	storedUser, ok := db.data[parsedUserId]
+	if !ok {
+		return nil, ErrNotFound
+	}
+
+	userResponse := &dto.UserResponse{
+		ID:        userId.String(),
+		FirstName: storedUser.FirstName,
+		LastName:  storedUser.LastName,
+		Biography: storedUser.biography,
+	}
+
+	delete(db.data, parsedUserId)
+
+	return userResponse, nil
+}

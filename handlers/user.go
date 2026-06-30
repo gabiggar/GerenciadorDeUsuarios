@@ -31,13 +31,7 @@ func PostUsers() http.HandlerFunc {
 			return
 		}
 
-		createUser := dto.CreateUserDTO{
-			FirstName: body.FirstName,
-			LastName:  body.LastName,
-			Biography: body.Biography,
-		}
-
-		user, err := models.Insert(createUser)
+		user, err := models.Insert(body)
 		if err != nil {
 			sendJSON(w, Response{Error: "internal server error"}, http.StatusInternalServerError)
 			return
@@ -70,7 +64,7 @@ func GetUsersById() http.HandlerFunc {
 		user, err := models.FindById(parsed)
 		if err != nil {
 			if errors.Is(err, models.ErrNotFound) {
-				sendJSON(w, Response{Error: "usuário não encontrado"}, http.StatusNotFound)
+				sendJSON(w, Response{Error: "user not found"}, http.StatusNotFound)
 				return
 			}
 
@@ -82,15 +76,61 @@ func GetUsersById() http.HandlerFunc {
 	}
 }
 
-func UpdateUsersById() http.HandlerFunc {
+func UpdateUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			sendJSON(w, Response{Error: "invalid id"}, http.StatusBadRequest)
+			return
+		}
 
+		var body dto.UpdateUserDTO
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			sendJSON(w, Response{Error: "invalid request body"}, http.StatusBadRequest)
+			return
+		}
+
+		if body.FirstName == "" || body.LastName == "" || body.Biography == "" {
+			sendJSON(w, Response{Error: "All fields are required"}, http.StatusBadRequest)
+			return
+		}
+		userUpdated, err := models.Update(parsed, body)
+		if err != nil {
+			if errors.Is(err, models.ErrNotFound) {
+				sendJSON(w, Response{Error: "user not found"}, http.StatusNotFound)
+				return
+			}
+
+			sendJSON(w, Response{Error: "unable to update user"}, http.StatusInternalServerError)
+			return
+		}
+
+		sendJSON(w, Response{Data: userUpdated}, http.StatusOK)
 	}
 }
 
-func DeleteUsersById() http.HandlerFunc {
+func DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		id := chi.URLParam(r, "id")
+		parsed, err := uuid.Parse(id)
+		if err != nil {
+			sendJSON(w, Response{Error: "invalid id"}, http.StatusBadRequest)
+			return
+		}
 
+		userDeleted, err := models.Delete(parsed)
+		if err != nil {
+			if errors.Is(err, models.ErrNotFound) {
+				sendJSON(w, Response{Error: "user not found"}, http.StatusNotFound)
+				return
+			}
+
+			sendJSON(w, Response{Error: "unable to delete user"}, http.StatusInternalServerError)
+			return
+		}
+
+		sendJSON(w, Response{Data: userDeleted}, http.StatusOK)
 	}
 }
 

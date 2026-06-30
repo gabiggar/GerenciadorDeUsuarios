@@ -19,8 +19,8 @@ func NewHandler() http.Handler {
 		r.Post("/users", handlers.PostUsers())
 		r.Get("/users", handlers.GetUsers())
 		r.Get("/users/{id}", handlers.GetUsersById())
-		r.Put("/users/{id}", handlers.UpdateUsersById())
-		r.Delete("/users/{id}", handlers.DeleteUsersById())
+		r.Put("/users/{id}", handlers.UpdateUsers())
+		r.Delete("/users/{id}", handlers.DeleteUser())
 	})
 
 	return r
