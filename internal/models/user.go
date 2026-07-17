@@ -16,3 +16,9 @@ type UpdateUserRequest struct {
 	LastName  *string `json:"last_name"`
 	Biography *string `json:"biography"`
 }
+
+type CreateUserRequest struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Biography string `json:"biography"`
+}

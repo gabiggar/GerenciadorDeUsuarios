@@ -22,12 +22,12 @@ func NewStore(db *sql.DB) Store {
 type Store interface {
 	FindAll() ([]models.User, error)
 	FindById(userID uuid.UUID) (*models.User, error)
-	Insert(newUser models.User) (models.User, error)
+	Insert(newUser models.CreateUserRequest) (models.User, error)
 	Update(userID uuid.UUID, update models.UpdateUserRequest) (*models.User, error)
 	Delete(userId uuid.UUID) (*models.User, error)
 }
 
-var ErrNotFound = errors.New("usuário não encontrado")
+var ErrNotFound = errors.New("user not found")
 
 func (s *store) FindAll() ([]models.User, error) {
 	query := `SELECT id, first_name, last_name, biography FROM users`
@@ -105,7 +105,7 @@ func (s *store) FindById(userID uuid.UUID) (*models.User, error) {
 	return &u, nil
 }
 
-func (s *store) Insert(newUser models.User) (models.User, error) {
+func (s *store) Insert(newUser models.CreateUserRequest) (models.User, error) {
 	newID := uuid.New()
 
 	u := models.User{
@@ -134,9 +134,17 @@ func (s *store) Update(userID uuid.UUID, userUpdate models.UpdateUserRequest) (*
 		return nil, err
 	}
 
-	user.FirstName = *userUpdate.FirstName
-	user.LastName = *userUpdate.LastName
-	user.Biography = *userUpdate.Biography
+	if userUpdate.FirstName != nil {
+		user.FirstName = *userUpdate.FirstName
+	}
+
+	if userUpdate.LastName != nil {
+		user.LastName = *userUpdate.LastName
+	}
+
+	if userUpdate.Biography != nil {
+		user.Biography = *userUpdate.Biography
+	}
 
 	query := `
 		UPDATE users

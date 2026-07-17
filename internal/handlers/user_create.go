@@ -9,7 +9,7 @@ import (
 
 func PostUsers(store repository.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var body models.User
+		var body models.CreateUserRequest
 
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			sendJSON(w, Response{Error: "invalid request body"}, http.StatusBadRequest)
